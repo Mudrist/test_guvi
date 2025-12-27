@@ -1,0 +1,42 @@
+name: Auto Create EC2 Instance
+
+on:
+  push:
+    branches:
+      - create-ec2   # change to your preferred branch
+
+env:
+  INSTANCE_NAME: auto-ec2-instance
+  AMI_ID: ami-00ca570c1b6d79f36
+  SUBNET_ID: subnet-0123456789abcdef0
+  INSTANCE_TYPE: t2.micro
+  AWS_REGION: ap-south-1   # MUST match AMI region
+
+jobs:
+  create-ec2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate AMI
+        run: |
+          aws ec2 describe-images --image-ids $AMI_ID
+
+      - name: Create EC2 Instance
+        run: |
+          INSTANCE_ID=$(aws ec2 run-instances \
+            --image-id $AMI_ID \
+            --instance-type $INSTANCE_TYPE \
+            --subnet-id $SUBNET_ID \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME}]" \
+            --query 'Instances[0].InstanceId' \
+            --output text)
+
+          echo "EC2 Instance Created: $INSTANCE_ID"
+
