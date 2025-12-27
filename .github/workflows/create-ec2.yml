@@ -1,0 +1,43 @@
+name: Create EC2 Instance
+
+on:
+  workflow_dispatch:
+    inputs:
+      instance_name:
+        description: "Name tag for the EC2 instance"
+        required: true
+      ami_id:
+        description: "AMI ID"
+        required: true
+      subnet_id:
+        description: "Subnet ID"
+        required: true
+      instance_type:
+        description: "EC2 Instance Type"
+        required: false
+        default: "t2.micro"
+
+jobs:
+  create-ec2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Create EC2 Instance
+        run: |
+          INSTANCE_ID=$(aws ec2 run-instances \
+            --image-id ${{ inputs.ami_id }} \
+            --instance-type ${{ inputs.instance_type }} \
+            --subnet-id ${{ inputs.subnet_id }} \
+            --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=${{ inputs.instance_name }} }]' \
+            --query 'Instances[0].InstanceId' \
+            --output text)
+
+          echo "EC2 Instance Created: $INSTANCE_ID"
+
