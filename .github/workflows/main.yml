@@ -8,7 +8,7 @@ on:
 env:
   INSTANCE_NAME: auto-ec2-instance
   AMI_ID: ami-00ca570c1b6d79f36
-  SUBNET_ID: subnet-0123456789abcdef0
+  SUBNET_ID: subnet-03cf3146148a8fab4
   INSTANCE_TYPE: t2.micro
   AWS_REGION: ap-south-1   # MUST match AMI region
 
