@@ -4,8 +4,9 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = "vikasmudrist/myapp_vikas_guvi"
-        DOCKER_TAG   = "latest"
+        IMAGE_NAME = "my-app"
+        CONTAINER_NAME   = "my-app-container"
+        PORT = "8081"
     }
 
     stages {
@@ -18,29 +19,24 @@ pipeline {
 
         stage('Build Image') {
             steps {
-                script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                    sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+                    sh 'docker build -t $IMAGE_NAME .'
                 }
             }
-        }
-
-        stage('Push to Docker Hub') {
+        stage('container operation') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                    sh '''
+                    docker stop $CONTAINER_NAME || true
+                    docker rm $CONTAINER_NAME || true
+                    '''
                 }
             }
-        }
-
-        stage('Push Image') {
+        stage('Run New Container') {
             steps {
-                sh "docker push ${DOCKER_IMAGE}:latest"
-            }
+                    sh '''
+                    docker run -d -p $PORT:80 --name $CONTAINER_NAME $IMAGE_NAME || true
+                    '''
+                }
+            }   
+            
         }
     }
-}
