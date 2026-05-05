@@ -39,4 +39,18 @@ pipeline {
             }   
             
         }
+    post {
+        success {
+            emailext {
+                subject: "SUCCESS: Job '${env.JOB_NAME}' [${env.BUILD_NUMBER}]",
+                 body: """The build was successful!
+                 BUILD SUUCESSFUL!
+
+                 Job: ${env.JOB_NAME}
+                 Build URL: ${env.BUILD_URL}
+                 BUILD Number: ${env.BUILD_NUMBER}
+                 """,
+                 to: "technologyvikasmudrist@gmail.com"    
+        }
+    }
     }
